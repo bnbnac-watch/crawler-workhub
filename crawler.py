@@ -1,4 +1,7 @@
+import logging
 from watch_contract import BaseCrawler, Item, CrawlerException
+
+logger = logging.getLogger(__name__)
 
 _BOARD_URL = "https://cafe.naver.com/f-e/cafes/31258781/menus/8"
 _BASE_URL = "https://cafe.naver.com"
@@ -47,6 +50,8 @@ class WorkhubCrawler(BaseCrawler):
                 except Exception:
                     continue
 
+            logger.info("파싱 완료: %d개", len(items))
             return items
         except Exception as e:
+            logger.error("crawl 예외: %s", e)
             raise CrawlerException(str(e)) from e
