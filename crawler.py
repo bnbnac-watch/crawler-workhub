@@ -1,5 +1,7 @@
 import logging
-from watch_contract import BaseCrawler, Item, CrawlerException
+
+from bs4 import BeautifulSoup
+from watch_contract import RenderCrawler, Item, CrawlerException
 
 logger = logging.getLogger(__name__)
 
@@ -13,33 +15,35 @@ _AUTHOR_SELECTOR = ".article-author"
 _DATE_SELECTOR = ".article-date"
 
 
-class WorkhubCrawler(BaseCrawler):
-    async def crawl(self, page) -> list[Item]:
+class WorkhubCrawler(RenderCrawler):
+    def render_request(self, params: dict) -> dict:
+        return {
+            "url": _BOARD_URL,
+            "wait_for": _ARTICLE_SELECTOR,
+        }
+
+    def parse(self, html: str, params: dict) -> list[Item]:
         try:
-            await page.goto(_BOARD_URL, wait_until="networkidle", timeout=30000)
-
-            await page.wait_for_selector(_ARTICLE_SELECTOR, timeout=10000)
-            articles = await page.query_selector_all(_ARTICLE_SELECTOR)
-
+            soup = BeautifulSoup(html, "html.parser")
             items = []
-            for article in articles:
+            for article in soup.select(_ARTICLE_SELECTOR):
                 try:
-                    title_el = await article.query_selector(_TITLE_SELECTOR)
+                    title_el = article.select_one(_TITLE_SELECTOR)
                     if not title_el:
                         continue
 
-                    title = (await title_el.inner_text()).strip()
-                    href = await title_el.get_attribute("href")
+                    title = title_el.get_text(strip=True)
+                    href = title_el.get("href")
                     if not href:
                         continue
                     if not href.startswith("http"):
                         href = f"{_BASE_URL}{href}"
 
-                    author_el = await article.query_selector(_AUTHOR_SELECTOR)
-                    author = (await author_el.inner_text()).strip() if author_el else ""
+                    author_el = article.select_one(_AUTHOR_SELECTOR)
+                    author = author_el.get_text(strip=True) if author_el else ""
 
-                    date_el = await article.query_selector(_DATE_SELECTOR)
-                    date = (await date_el.inner_text()).strip() if date_el else ""
+                    date_el = article.select_one(_DATE_SELECTOR)
+                    date = date_el.get_text(strip=True) if date_el else ""
 
                     items.append(Item(
                         id=href,
@@ -53,5 +57,5 @@ class WorkhubCrawler(BaseCrawler):
             logger.info("파싱 완료: %d개", len(items))
             return items
         except Exception as e:
-            logger.error("crawl 예외: %s", e)
+            logger.error("parse 예외: %s", e)
             raise CrawlerException(str(e)) from e
