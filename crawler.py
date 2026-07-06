@@ -6,13 +6,11 @@ from watch_contract import RenderCrawler, Item, CrawlerException
 logger = logging.getLogger(__name__)
 
 _BOARD_URL = "https://cafe.naver.com/f-e/cafes/31258781/menus/8"
-_BASE_URL = "https://cafe.naver.com"
 
-# 아래 셀렉터는 실제 페이지 구조 확인 후 수정 필요
-_ARTICLE_SELECTOR = "li.article-item"
-_TITLE_SELECTOR = "a.article-title"
-_AUTHOR_SELECTOR = ".article-author"
-_DATE_SELECTOR = ".article-date"
+_ARTICLE_SELECTOR = "table.article-table tbody tr"
+_TITLE_SELECTOR = "a.article"
+_AUTHOR_SELECTOR = ".nickname"
+_DATE_SELECTOR = ".type_date"
 
 
 class WorkhubCrawler(RenderCrawler):
@@ -36,8 +34,6 @@ class WorkhubCrawler(RenderCrawler):
                     href = title_el.get("href")
                     if not href:
                         continue
-                    if not href.startswith("http"):
-                        href = f"{_BASE_URL}{href}"
 
                     author_el = article.select_one(_AUTHOR_SELECTOR)
                     author = author_el.get_text(strip=True) if author_el else ""
