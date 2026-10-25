@@ -27,6 +27,7 @@ items.append(Item(id=href, title=title, url=href, ...))
 | 변수 | 기본값 | 설명 |
 |---|---|---|
 | `WATCH_PLAYWRIGHT_URL` | `http://watch-playwright:8080` | |
+| `NAVER_OPEN_URL` | (없음) | 설정하면 `Item.url`을 `<NAVER_OPEN_URL>?u=<글 URL>`로 감싼다. 글 열람에 로그인이 필요해, 알림 링크를 로그인된 네이버 앱으로 열게 하는 [watch-link-relay](https://github.com/bnbnac-watch/watch-link-relay) 주소를 넣는다 (`https://bnbnac-watch.github.io/watch-link-relay/`). `id`는 영향받지 않는다. |
 
 ## 포트
 

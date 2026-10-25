@@ -1,4 +1,6 @@
 import logging
+import os
+from urllib.parse import quote, urljoin
 
 from bs4 import BeautifulSoup
 from watch_contract import RenderCrawler, Item, CrawlerException
@@ -11,6 +13,15 @@ _ARTICLE_SELECTOR = "table.article-table tbody tr"
 _TITLE_SELECTOR = "a.article"
 _AUTHOR_SELECTOR = ".nickname"
 _DATE_SELECTOR = ".type_date"
+
+# 글 열람에 로그인이 필요해서, 알림 링크가 네이버 앱(로그인 세션 보유)으로 열리도록 중계 페이지를 거친다.
+_NAVER_OPEN_URL = os.getenv("NAVER_OPEN_URL", "")
+
+
+def _notify_url(href: str) -> str:
+    if not _NAVER_OPEN_URL:
+        return href
+    return f"{_NAVER_OPEN_URL}?u={quote(urljoin(_BOARD_URL, href), safe='')}"
 
 
 class WorkhubCrawler(RenderCrawler):
@@ -44,7 +55,7 @@ class WorkhubCrawler(RenderCrawler):
                     items.append(Item(
                         id=href,
                         title=title,
-                        url=href,
+                        url=_notify_url(href),
                         data={"author": author, "date": date},
                     ))
                 except Exception:
